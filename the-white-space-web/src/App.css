@@ -1,0 +1,81 @@
+.App {
+    text-align: center;
+}
+
+.canvas {
+    cursor: none;
+    background-color: #ffffff;
+    background-image: radial-gradient(#cfcfcf 2px, transparent 2px);
+    background-size: 24px 24px;
+    background-position: 0 0;
+}
+
+.canvas-container {
+    background-color: #ffffff;
+    box-shadow:
+        12px 12px 0px rgba(0, 0, 0, 0.8),
+        inset 0 0 0 2px rgba(0, 0, 0, 0.05);
+}
+
+.custom-cursor {
+    position: absolute;
+    pointer-events: none;
+    transform: translate(-70%, -10%) rotate(-5deg);
+    filter: drop-shadow(3px 3px 0px rgba(0, 0, 0, 0.8));
+    transition: transform 0.1s ease-out;
+}
+
+.custom-cursor.pressed {
+    transform: translate(-70%, -8%) rotate(-2deg);
+    filter: drop-shadow(3px 3px 0px rgba(0, 0, 0, 0.8));
+}
+
+/* Simplified cursor image style */
+.custom-cursor img {
+    width: 48px;
+    height: 48px;
+    will-change: transform;
+}
+
+/* Hide cursor when out of tab */
+.hidden {
+    display: none;
+}
+
+.user-icons {
+    position: absolute;
+    pointer-events: none;
+}
+
+.user-icon {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    transition: transform 0.1s ease-out;
+}
+
+.user-badge {
+    position: absolute;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #000000;
+    box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.8);
+    transition: transform 0.2s ease;
+    z-index: 1000;
+}
+
+.user-badge:hover {
+    transform: translate(-52%, -52%) !important;
+    box-shadow: 5px 5px 0px rgba(0, 0, 0, 0.8);
+}
+
+.user-name {
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 0.9rem;
+    text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.5);
+}
