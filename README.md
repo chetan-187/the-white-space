@@ -4,7 +4,7 @@ A real-time collaborative white canvas that allows multiple users to draw simult
 
 ## 🚀 Features
 
-- Real-time collaborative code editing
+- Real-time collaborative canvas
 - User presence indicators
 - Shared workspace
 - Responsive design
