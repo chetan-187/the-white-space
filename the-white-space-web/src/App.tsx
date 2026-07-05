@@ -6,8 +6,9 @@ import pencilIcon from "./assets/pencil.svg";
 import "./App.css";
 import { styled } from "@mui/material/styles";
 
-const SOCKET_URL = "http://localhost:5001";
-const API_URL = "http://localhost:5001";
+const SERVER_URL = process.env.REACT_APP_SERVER_URL || "http://localhost:5001";
+const SOCKET_URL = SERVER_URL;
+const API_URL = SERVER_URL;
 
 const StyledWrapper = styled('div')({
   position: 'relative',
