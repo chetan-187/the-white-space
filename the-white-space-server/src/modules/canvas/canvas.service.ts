@@ -1,5 +1,5 @@
 import { CanvasRepository } from './canvas.repository';
-import { CanvasUpdate } from './canvas.types';
+import { CanvasUpdate, LineSegment } from './canvas.types';
 
 export const CanvasService = {
   async getCanvas() {
@@ -9,6 +9,11 @@ export const CanvasService = {
   async saveUpdate(update: CanvasUpdate) {
     await CanvasRepository.saveCanvasState(update);
     return update;
+  },
+
+  async saveUpdates(updates: LineSegment[]) {
+    await CanvasRepository.saveCanvasStates(updates);
+    return updates;
   },
 
   async clearCanvas() {

@@ -1,5 +1,6 @@
 import { Server } from "socket.io";
 import { CanvasController } from "../modules/canvas/canvas.controller";
+import { AiController } from "../modules/ai/ai.controller";
 import { UserService } from "../modules/user/user.service";
 
 // Add positions store
@@ -36,5 +37,6 @@ export const setupSocket = (io: Server) => {
     });
 
     CanvasController(socket, io);
+    AiController(socket, io);
   });
 };
