@@ -1,12 +1,13 @@
 import React, { useRef, useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import ActiveUsers from "./components/ActiveUsers";
+import AiChatBox from "./components/AiChatBox";
 import pencilIcon from "./assets/pencil.svg";
 import "./App.css";
 import { styled } from "@mui/material/styles";
 
-const SOCKET_URL = "http://localhost:5000";
-const API_URL = "http://localhost:5000";
+const SOCKET_URL = "http://localhost:5001";
+const API_URL = "http://localhost:5001";
 
 const StyledWrapper = styled('div')({
   position: 'relative',
@@ -248,6 +249,13 @@ const App: React.FC = () => {
           <ActiveUsers users={activeUsers} />
         </ActiveUsersWrapper>
       )}
+
+      <div
+        onMouseEnter={() => setShowPencil(false)}
+        onMouseLeave={() => setShowPencil(true)}
+      >
+        <AiChatBox socket={socket} />
+      </div>
 
       <StyledWrapper
         onMouseMove={moveCursor}
