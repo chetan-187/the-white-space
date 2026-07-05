@@ -9,6 +9,7 @@ export interface LineSegment {
     y1: number;
     x2: number;
     y2: number;
+    tool?: 'pen' | 'eraser';
   }
 
 export type CanvasStateItem = CanvasUpdate | LineSegment;

@@ -45,6 +45,12 @@ body {
     width: 48px;
     height: 48px;
     will-change: transform;
+    transition: transform 0.2s ease;
+}
+
+/* Eraser mode: flip the pencil so its eraser end points at the canvas */
+.custom-cursor.eraser img {
+    transform: rotate(180deg);
 }
 
 /* Hide cursor when out of tab */
