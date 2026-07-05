@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Socket } from "socket.io-client";
 import { styled } from "@mui/material/styles";
+import Tooltip, { TooltipProps } from "@mui/material/Tooltip";
+
+// Flip to true when the wallet recovers
+const AI_ENABLED = false;
+
+const DISABLED_MESSAGE =
+  "🎨 AI artist is on an unpaid break - the API bills drew all over my wallet. Coming soon!";
 
 const ChatBoxWrapper = styled('div')({
   position: 'fixed',
@@ -82,6 +89,32 @@ const SendButton = styled('button')({
   },
 });
 
+const StyledTooltip = styled(
+  ({ className, ...props }: TooltipProps) => (
+    <Tooltip {...props} classes={{ popper: className }} />
+  )
+)(() => ({
+  '& .MuiTooltip-tooltip': {
+    backgroundColor: '#ffd43b',
+    color: '#000000',
+    border: '2px solid #000000',
+    boxShadow: '4px 4px 0px rgba(0, 0, 0, 0.8)',
+    borderRadius: '8px',
+    padding: '10px 14px',
+    fontSize: '0.85rem',
+    fontWeight: 700,
+    fontFamily: "'Poppins', sans-serif",
+    maxWidth: 260,
+  },
+  '& .MuiTooltip-arrow': {
+    color: '#ffd43b',
+    '&::before': {
+      backgroundColor: '#ffd43b',
+      border: '2px solid #000000',
+    },
+  },
+}));
+
 const StatusText = styled('div')<{ error?: boolean }>(({ error }) => ({
   fontSize: 12,
   fontWeight: 700,
@@ -133,6 +166,7 @@ const AiChatBox: React.FC<AiChatBoxProps> = ({ socket }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!AI_ENABLED) return;
     const trimmed = prompt.trim();
     if (!trimmed || generating) return;
 
@@ -143,23 +177,36 @@ const AiChatBox: React.FC<AiChatBoxProps> = ({ socket }) => {
     setPrompt("");
   };
 
-  return (
+  const chatBox = (
     <ChatBoxWrapper>
       <InputRow onSubmit={handleSubmit}>
         <PromptInput
           type="text"
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Ask AI to draw…"
-          disabled={generating}
+          placeholder={AI_ENABLED ? "Ask AI to draw…" : "AI is napping… 💤"}
+          disabled={!AI_ENABLED || generating}
         />
-        <SendButton type="submit" disabled={generating || !prompt.trim()}>
-          {generating ? '…' : 'Draw'}
+        <SendButton
+          type="submit"
+          disabled={!AI_ENABLED || generating || !prompt.trim()}
+        >
+          {AI_ENABLED ? (generating ? '…' : 'Draw') : 'Soon™'}
         </SendButton>
       </InputRow>
       {statusMessage && <StatusText error={isError}>{statusMessage}</StatusText>}
     </ChatBoxWrapper>
   );
+
+  if (!AI_ENABLED) {
+    return (
+      <StyledTooltip title={DISABLED_MESSAGE} arrow placement="top">
+        {chatBox}
+      </StyledTooltip>
+    );
+  }
+
+  return chatBox;
 };
 
 export default AiChatBox;
