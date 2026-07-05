@@ -6,7 +6,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.get('/get-canvas-state', async (req, res) => {
+app.get('/canvas-state', async (req, res) => {
   const canvasState = await CanvasRepository.getCanvasState();
   res.send({ canvasState });
 });

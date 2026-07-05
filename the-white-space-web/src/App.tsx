@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import ActiveUsers from "./components/ActiveUsers";
 import AiChatBox from "./components/AiChatBox";
+import ServerWakeOverlay from "./components/ServerWakeOverlay";
 import pencilIcon from "./assets/pencil.svg";
 import "./App.css";
 import { styled } from "@mui/material/styles";
@@ -81,7 +82,7 @@ const App: React.FC = () => {
 
   const fetchCanvasState = async () => {
     try {
-      const response = await fetch(`${API_URL}/get-canvas-state`);
+      const response = await fetch(`${API_URL}/canvas-state`);
       const data = await response.json();
 
       if (!ctxRef.current || !canvasRef.current) return;
@@ -242,6 +243,8 @@ const App: React.FC = () => {
 
   return (
     <>
+      <ServerWakeOverlay socket={socket} />
+
       {activeUsers && (
         <ActiveUsersWrapper
           onMouseEnter={() => setShowPencil(false)}
