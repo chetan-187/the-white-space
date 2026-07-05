@@ -11,6 +11,18 @@ const SERVER_URL = process.env.REACT_APP_SERVER_URL || "http://localhost:5001";
 const SOCKET_URL = SERVER_URL;
 const API_URL = SERVER_URL;
 
+// Screen-sized scroll container: the document never exceeds the viewport, so
+// position:fixed UI (user icons, chatbox) stays visible on mobile browsers.
+const ScrollContainer = styled('div')({
+  width: '100vw',
+  height: '100vh',
+  overflow: 'auto',
+  overscrollBehavior: 'none',
+  '@supports (height: 100dvh)': {
+    height: '100dvh',
+  },
+});
+
 const StyledWrapper = styled('div')({
   position: 'relative',
   width: '5000px',
@@ -35,6 +47,7 @@ const App: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
   const cursorRef = useRef<HTMLDivElement | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
   const [drawing, setDrawing] = useState(false);
   const [activeUsers, setActiveUsers] = useState<any>();
   const [showPencil, setShowPencil] = useState(true);
@@ -181,15 +194,16 @@ const App: React.FC = () => {
 
     let x: number, y: number;
     const rect = canvasRef.current.getBoundingClientRect();
-    const offsetX = -35;
-    const offsetY = 0;
 
     if ("touches" in e) {
-      x = e.touches[0].clientX - rect.left + offsetX;
-      y = e.touches[0].clientY - rect.top + offsetY;
+      if (e.touches.length === 0) return;
+      // No cursor-hotspot offset on touch — draw exactly under the finger
+      x = e.touches[0].clientX - rect.left;
+      y = e.touches[0].clientY - rect.top;
     } else {
-      x = e.clientX - rect.left + offsetX;
-      y = e.clientY - rect.top + offsetY;
+      // -35 compensates for the pencil cursor icon's hotspot
+      x = e.clientX - rect.left - 35;
+      y = e.clientY - rect.top;
     }
 
     if (lastPos) {
@@ -215,13 +229,15 @@ const App: React.FC = () => {
 
   const moveCursor = (e: React.MouseEvent | React.TouchEvent) => {
     if (cursorRef.current && userId) {
+      const scrollLeft = scrollRef.current?.scrollLeft ?? 0;
+      const scrollTop = scrollRef.current?.scrollTop ?? 0;
       let x: number, y: number;
       if ("touches" in e) {
-        x = e.touches[0].clientX + window.scrollX;
-        y = e.touches[0].clientY + window.scrollY;
+        x = e.touches[0].clientX + scrollLeft;
+        y = e.touches[0].clientY + scrollTop;
       } else {
-        x = e.clientX + window.scrollX;
-        y = e.clientY + window.scrollY;
+        x = e.clientX + scrollLeft;
+        y = e.clientY + scrollTop;
       }
 
       cursorRef.current.style.left = `${x}px`;
@@ -261,6 +277,7 @@ const App: React.FC = () => {
         <AiChatBox socket={socket} />
       </div>
 
+      <ScrollContainer ref={scrollRef}>
       <StyledWrapper
         onMouseMove={moveCursor}
         onMouseEnter={handleMouseEnter}
@@ -314,11 +331,12 @@ const App: React.FC = () => {
             onMouseMove={draw}
             onTouchStart={startDrawing}
             onTouchEnd={stopDrawing}
-            // onTouchMove={draw}
+            onTouchMove={draw}
           />
         </div>
 
       </StyledWrapper>
+      </ScrollContainer>
     </>
   );
 };

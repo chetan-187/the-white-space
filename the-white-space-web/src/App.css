@@ -1,3 +1,11 @@
+html,
+body {
+    margin: 0;
+    /* The ScrollContainer owns scrolling — the document itself never scrolls,
+       which keeps position:fixed UI reliable on mobile browsers */
+    overflow: hidden;
+}
+
 .App {
     text-align: center;
 }
@@ -8,6 +16,8 @@
     background-image: radial-gradient(#cfcfcf 2px, transparent 2px);
     background-size: 24px 24px;
     background-position: 0 0;
+    /* Touches on the canvas draw instead of scrolling/zooming the page */
+    touch-action: none;
 }
 
 .canvas-container {
