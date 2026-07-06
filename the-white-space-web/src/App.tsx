@@ -59,7 +59,12 @@ const App: React.FC = () => {
   const [tool, setTool] = useState<Tool>('pen');
   const [zoom, setZoom] = useState(1);
   const zoomRef = useRef(1);
-  const pinchRef = useRef<{ dist: number; zoom: number } | null>(null);
+  const pinchRef = useRef<{
+    dist: number;
+    zoom: number;
+    midX: number;
+    midY: number;
+  } | null>(null);
 
   const applyZoom = (nextZoom: number, anchorX?: number, anchorY?: number) => {
     const clamped = Math.min(3, Math.max(0.25, nextZoom));
@@ -216,6 +221,8 @@ const App: React.FC = () => {
       pinchRef.current = {
         dist: Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY),
         zoom: zoomRef.current,
+        midX: (t1.clientX + t2.clientX) / 2,
+        midY: (t1.clientY + t2.clientY) / 2,
       };
       setDrawing(false);
       setLastPos(null);
@@ -234,15 +241,43 @@ const App: React.FC = () => {
   const draw = (e: React.MouseEvent | React.TouchEvent) => {
     if (!canvasRef.current || !ctxRef.current || !userId) return;
 
-    // Ongoing two-finger gesture: update zoom around the pinch midpoint
+    // Ongoing two-finger gesture: pan + zoom in one motion
     if ("touches" in e && e.touches.length >= 2) {
-      if (pinchRef.current) {
+      const pinch = pinchRef.current;
+      const container = scrollRef.current;
+      if (pinch && container) {
         const t1 = e.touches[0];
         const t2 = e.touches[1];
         const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
         const midX = (t1.clientX + t2.clientX) / 2;
         const midY = (t1.clientY + t2.clientY) / 2;
-        applyZoom((pinchRef.current.zoom * dist) / pinchRef.current.dist, midX, midY);
+
+        const zOld = zoomRef.current;
+        const zNew = Math.min(3, Math.max(0.25, (pinch.zoom * dist) / pinch.dist));
+
+        // The content point that was under the previous finger-midpoint must
+        // end up under the new midpoint — this one formula covers panning
+        // (midpoint moved), zooming (distance changed), and anchoring.
+        const contentX = (container.scrollLeft + pinch.midX) / zOld;
+        const contentY = (container.scrollTop + pinch.midY) / zOld;
+        const targetLeft = contentX * zNew - midX;
+        const targetTop = contentY * zNew - midY;
+
+        if (zNew !== zOld) {
+          zoomRef.current = zNew;
+          setZoom(zNew);
+          // Wait for the re-render so the scroll area can fit the new scale
+          requestAnimationFrame(() => {
+            container.scrollLeft = targetLeft;
+            container.scrollTop = targetTop;
+          });
+        } else {
+          container.scrollLeft = targetLeft;
+          container.scrollTop = targetTop;
+        }
+
+        pinch.midX = midX;
+        pinch.midY = midY;
       }
       return;
     }
@@ -304,25 +339,30 @@ const App: React.FC = () => {
   };
 
   const moveCursor = (e: React.MouseEvent | React.TouchEvent) => {
-    if (cursorRef.current && userId) {
-      const scrollLeft = scrollRef.current?.scrollLeft ?? 0;
-      const scrollTop = scrollRef.current?.scrollTop ?? 0;
-      // Cursor/badges live inside the scaled wrapper, so convert to content coords
-      const z = zoomRef.current;
-      let x: number, y: number;
-      if ("touches" in e) {
-        x = (e.touches[0].clientX + scrollLeft) / z;
-        y = (e.touches[0].clientY + scrollTop) / z;
-      } else {
-        x = (e.clientX + scrollLeft) / z;
-        y = (e.clientY + scrollTop) / z;
-      }
+    if (!userId) return;
+    // Multi-touch is a pinch gesture — no single position to broadcast
+    if ("touches" in e && e.touches.length !== 1) return;
 
+    const scrollLeft = scrollRef.current?.scrollLeft ?? 0;
+    const scrollTop = scrollRef.current?.scrollTop ?? 0;
+    // Cursor/badges live inside the scaled wrapper, so convert to content coords
+    const z = zoomRef.current;
+    let x: number, y: number;
+    if ("touches" in e) {
+      x = (e.touches[0].clientX + scrollLeft) / z;
+      y = (e.touches[0].clientY + scrollTop) / z;
+    } else {
+      x = (e.clientX + scrollLeft) / z;
+      y = (e.clientY + scrollTop) / z;
+    }
+
+    // The pencil cursor div only exists on mouse devices
+    if (cursorRef.current) {
       cursorRef.current.style.left = `${x}px`;
       cursorRef.current.style.top = `${y}px`;
-
-      socket.emit("user-drawing", { userId, x, y });
     }
+
+    socket.emit("user-drawing", { userId, x, y });
   };
 
   const handleMouseEnter = () => {
@@ -373,6 +413,7 @@ const App: React.FC = () => {
       <div style={{ width: 5000 * zoom, height: 5000 * zoom }}>
       <StyledWrapper
         onMouseMove={moveCursor}
+        onTouchMove={moveCursor}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         style={{ transform: `scale(${zoom})`, transformOrigin: '0 0' }}
