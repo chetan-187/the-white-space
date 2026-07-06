@@ -1,5 +1,5 @@
 import { User } from './user.types';
-import { generateUserName } from './user.utils';
+import { generateUserName, generateUserColor } from './user.utils';
 
 let users: Record<string, User> = {};
 
@@ -7,8 +7,8 @@ export const UserService = {
   addUser(userId: string): User {
     const user = {
       id: userId,
-      name: generateUserName(),
-      color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+      name: generateUserName(userId),
+      color: generateUserColor(userId),
     };
     users[userId] = user;
     return user;
